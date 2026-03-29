@@ -24,13 +24,7 @@ def mark_attendance(user_id, task_id, status):
 @router.get('/')
 def get_tasks():
     db = SessionLocal()
-    try:
-        tasks = task_service.get_tasks(db)
-        print("TASKS:", tasks)
-        return tasks
-    except Exception as e:
-        print("ERROR:", e)
-        return {"error": str(e)}
+    return task_service.get_tasks(db)
 
 @router.get('/attendance/{task_id}')
 def get_attendance(task_id: int):
