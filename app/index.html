@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Attendance Tracker</title>
+</head>
+<body>
+  <h1>Attendance Tracker</h1>
+
+  <!-- Add Student -->
+  <input id="studentName" placeholder="Student name">
+  <button onclick="addStudent()">Add Student</button>
+
+  <!-- Create Session -->
+  <input id="sessionTitle" placeholder="Session title">
+  <button onclick="createSession()">Create Session</button>
+
+  <h2>Students</h2>
+  <ul id="students"></ul>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    // Add a student
+    async function addStudent() {
+      const name = document.getElementById("studentName").value;
+      await fetch('${API_BASE}/users/?name=${name}', { method: "POST" });
+      loadStudents();
+    }
+
+    // Create a session
+    async function createSession() {
+      const title = document.getElementById("sessionTitle").value;
+      await fetch('${API_BASE}/tasks/?title=${title}', { method: "POST" });
+    }
+
+    // Load students and show them with attendance buttons
+    async function loadStudents() {
+      const res = await fetch('${API_BASE}/users/');
+      const data = await res.json();
+
+      const list = document.getElementById("students");
+      list.innerHTML = "";
+
+      data.forEach(s => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          ${s.name} 
+          <button onclick="markAttendance(${s.id}, 'present')">Present</button>
+          <button onclick="markAttendance(${s.id}, 'absent')">Absent</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // Mark attendance for a student
+    async function markAttendance(userId, status) {
+      await fetch('${API_BASE}/tasks/attendance?user_id=${userId}&task_id=1&status=${status}', {
+        method: "POST"
+      });
+      alert("Attendance marked!");
+    }
+
+    // Load students when page opens
+    loadStudents();
+  </script>
+</body>
+</html>
