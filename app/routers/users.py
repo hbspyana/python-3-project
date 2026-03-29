@@ -16,4 +16,9 @@ def create_user(name: str):
 @router.get('/')
 def get_users():
     db = SessionLocal()
-    return user_service.get_users(db)
+    return user_service.get_users_stats(db)
+
+@router.delete('/{user_id}')
+def delete_user(user_id: int):
+    db = SessionLocal()
+    return user_service.delete_user(db, user_id)

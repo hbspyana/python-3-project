@@ -2,44 +2,91 @@
 <html>
 <head>
   <title>Attendance Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    button { margin: 2px; }
+    select { margin-bottom: 10px; }
+    li { margin-bottom: 10px; }
+  </style>
 </head>
 <body>
   <h1>Attendance Tracker</h1>
 
+  <h2>Add Student</h2>
   <input id="studentName" placeholder="Student name">
   <button onclick="addStudent()">Add Student</button>
 
-  <br><br>
-
+  <h2>Create Session</h2>
   <input id="sessionTitle" placeholder="Session title">
   <button onclick="createSession()">Create Session</button>
+
+  <h2>Sessions</h2>
+  <select id="sessionSelect" onchange="changeSession()"></select>
 
   <h2>Students</h2>
   <ul id="students"></ul>
 
   <script>
     const API_BASE = "https://attendance-tracker-dp4l.onrender.com";
+    let currentSessionId = null;
 
     async function addStudent() {
-      const name = document.getElementById("studentName").value;
+      const name = document.getElementById("studentName").value.trim();
+      if (!name) return;
 
-      await fetch(`${API_BASE}/users/?name=${name}`, {
-        method: "POST"
-      });
+      await fetch(`${API_BASE}/users/?name=${name}`, { method: "POST" });
+      document.getElementById("studentName").value = "";
+      loadSessions();
+    }
 
+    async function deleteStudent(id) {
+      await fetch(`${API_BASE}/users/${id}`, { method: "DELETE" });
       loadStudents();
     }
 
     async function createSession() {
-      const title = document.getElementById("sessionTitle").value;
+      const title = document.getElementById("sessionTitle").value.trim();
+      if (!title) return;
 
-      await fetch(`${API_BASE}/tasks/?title=${title}`, {
-        method: "POST"
+      await fetch(`${API_BASE}/tasks/?title=${title}`, { method: "POST" });
+      document.getElementById("sessionTitle").value = "";
+      loadSessions();
+    }
+
+    async function loadSessions() {
+      const res = await fetch(`${API_BASE}/tasks/`);
+      const data = await res.json();
+
+      const select = document.getElementById("sessionSelect");
+      select.innerHTML = "";
+
+      data.forEach(session => {
+        const option = document.createElement("option");
+        option.value = session.id;
+        option.textContent = session.title;
+        select.appendChild(option);
       });
+
+      if (data.length > 0) {
+        if (!currentSessionId) currentSessionId = data[0].id;
+        select.value = currentSessionId;
+        loadStudents();
+      } else {
+        currentSessionId = null;
+        document.getElementById("students").innerHTML = "";
+      }
+    }
+
+    function changeSession() {
+      const select = document.getElementById("sessionSelect");
+      currentSessionId = select.value;
+      loadStudents();
     }
 
     async function loadStudents() {
-      const res = await fetch(`${API_BASE}/users/`);
+      if (!currentSessionId) return;
+
+      const res = await fetch(`${API_BASE}/tasks/attendance/${currentSessionId}`);
       const data = await res.json();
 
       const list = document.getElementById("students");
@@ -49,9 +96,13 @@
         const li = document.createElement("li");
 
         li.innerHTML = `
-          ${s.name}
+          <strong>${s.name}</strong>
+          — Status: <b>${s.status}</b>
+          <br>
           <button onclick="markAttendance(${s.id}, 'present')">Present</button>
+          <button onclick="markAttendance(${s.id}, 'late')">Late</button>
           <button onclick="markAttendance(${s.id}, 'absent')">Absent</button>
+          <button onclick="deleteStudent(${s.id})">Delete</button>
         `;
 
         list.appendChild(li);
@@ -59,14 +110,16 @@
     }
 
     async function markAttendance(userId, status) {
-      await fetch(`${API_BASE}/tasks/attendance?user_id=${userId}&task_id=1&status=${status}`, {
+      if (!currentSessionId) return;
+
+      await fetch(`${API_BASE}/tasks/attendance?user_id=${userId}&task_id=${currentSessionId}&status=${status}`, {
         method: "POST"
       });
 
-      alert("Attendance marked!");
+      loadStudents();
     }
 
-    loadStudents();
+    loadSessions();
   </script>
 </body>
 </html>
