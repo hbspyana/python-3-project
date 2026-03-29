@@ -18,4 +18,4 @@ class Attendance(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer)
     task_id = Column(Integer)
-    status = Column(Integer)
+    status = Column(String)

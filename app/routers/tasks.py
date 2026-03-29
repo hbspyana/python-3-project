@@ -9,11 +9,11 @@ engine = create_engine('sqlite:///./attendance.db')
 SessionLocal = sessionmaker(bind=engine)
 
 @router.post('/')
-def create_user(name: str):
+def create_task(title: str):
     db = SessionLocal()
-    return task_service.create_user(db, name)
+    return task_service.create_task(db, title)
 
-@router.post('attendance')
+@router.post('/attendance')
 def mark_attendance(user_id, task_id, status):
     db = SessionLocal()
     result = task_service.mark_attendance(db, user_id, task_id, status)

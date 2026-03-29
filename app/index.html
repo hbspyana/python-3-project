@@ -9,6 +9,8 @@
   <input id="studentName" placeholder="Student name">
   <button onclick="addStudent()">Add Student</button>
 
+  <br><br>
+
   <input id="sessionTitle" placeholder="Session title">
   <button onclick="createSession()">Create Session</button>
 
@@ -16,21 +18,28 @@
   <ul id="students"></ul>
 
   <script>
-    const API_BASE = 'https://attendance-tracker-dp4l.onrender.com';
+    const API_BASE = "https://attendance-tracker-dp4l.onrender.com";
 
     async function addStudent() {
       const name = document.getElementById("studentName").value;
-      await fetch('${API_BASE}/users/?name=${name}', { method: "POST" });
+
+      await fetch(`${API_BASE}/users/?name=${name}`, {
+        method: "POST"
+      });
+
       loadStudents();
     }
 
     async function createSession() {
       const title = document.getElementById("sessionTitle").value;
-      await fetch('${API_BASE}/tasks/?title=${title}', { method: "POST" });
+
+      await fetch(`${API_BASE}/tasks/?title=${title}`, {
+        method: "POST"
+      });
     }
 
     async function loadStudents() {
-      const res = await fetch('${API_BASE}/users/');
+      const res = await fetch(`${API_BASE}/users/`);
       const data = await res.json();
 
       const list = document.getElementById("students");
@@ -38,19 +47,22 @@
 
       data.forEach(s => {
         const li = document.createElement("li");
+
         li.innerHTML = `
-          ${s.name} 
+          ${s.name}
           <button onclick="markAttendance(${s.id}, 'present')">Present</button>
           <button onclick="markAttendance(${s.id}, 'absent')">Absent</button>
         `;
+
         list.appendChild(li);
       });
     }
 
     async function markAttendance(userId, status) {
-      await fetch('${API_BASE}/tasks/attendance?user_id=${userId}&task_id=1&status=${status}', {
+      await fetch(`${API_BASE}/tasks/attendance?user_id=${userId}&task_id=1&status=${status}`, {
         method: "POST"
       });
+
       alert("Attendance marked!");
     }
 

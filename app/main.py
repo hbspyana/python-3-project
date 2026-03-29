@@ -13,9 +13,9 @@ app.include_router(users.router, prefix='/users')
 app.include_router(tasks.router, prefix='/tasks')
 app.mount('/static', StaticFiles(directory='.'), name='static')
 
-@app.get('/')
-def root():
-    return {'message': 'Attendance API running'}
+# @app.get('/')
+# def root():
+#     return {'message': 'Attendance API running'}
 
 @app.get('/dashboard')
 def dashboard():
