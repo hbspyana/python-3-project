@@ -44,7 +44,7 @@
       await fetch(`${API_BASE}/users/?name=${name}`, { method: "POST" });
       document.getElementById("studentName").value = "";
 
-      loadStudents();
+      loadSessions(); // 👈 IMPORTANT FIX
     }
 
     async function deleteStudent(id) {
