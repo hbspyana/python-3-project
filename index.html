@@ -98,7 +98,6 @@
       });
 
       if (data.length > 0) {
-        // ⚡ If no session selected, select the **last created session**
         if (!currentSessionId) currentSessionId = data[data.length - 1].id;
 
         select.value = currentSessionId;

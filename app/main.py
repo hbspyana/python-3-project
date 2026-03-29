@@ -19,6 +19,7 @@ def root():
     file_path = os.path.join(os.getcwd(), 'index.html')
     return FileResponse(file_path)
 
+
 @app.get('/dashboard')
 def dashboard():
     file_path = os.path.join(os.getcwd(), 'index.html')
