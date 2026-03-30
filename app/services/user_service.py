@@ -1,4 +1,4 @@
-from app.models.models import User
+from app.models.models import User, Attendance
 
 def create_user(db, name):
     user = User(name=name)
@@ -18,8 +18,6 @@ def delete_user(db, user_id):
     db.delete(user)
     db.commit()
     return {'message': 'User deleted'}
-
-from app.models.models import Attendance
 
 def get_user_stats(db):
     users = db.query(User).all()

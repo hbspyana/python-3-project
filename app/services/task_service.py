@@ -1,4 +1,3 @@
-from app.models.models import Task, Attendance
 from app.models.models import Task, Attendance, User
 
 def create_task(db, title):
@@ -30,17 +29,12 @@ def mark_attendance(db, user_id, task_id, status):
 def get_tasks(db):
     return db.query(Task).all()
 
-from app.models.models import User, Attendance
-
 def get_attendance_for_task(db, task_id):
     users = db.query(User).all()
     result = []
 
     for user in users:
-        record = db.query(Attendance).filter_by(
-            user_id=user.id,
-            task_id=task_id
-        ).first()
+        record = db.query(Attendance).filter_by(user_id=user.id, task_id=task_id).first()
 
         result.append({
             'id': user.id,

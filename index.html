@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
   <title>Attendance Tracker</title>
@@ -151,6 +151,281 @@
 
     loadSessions();
   </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Attendance Tracker</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    input, select {
+      padding: 6px;
+      margin: 5px 0;
+    }
+
+    button {
+      margin: 2px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .card {
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .status {
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: white;
+    }
+
+    .present { background: #4CAF50; }
+    .late { background: #FFC107; color: black; }
+    .absent { background: #F44336; }
+
+    .stats {
+      margin: 10px 0;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+    }
+
+    .info {
+      color: gray;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Attendance Tracker</h1>
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Attendance Tracker</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    input, select {
+      padding: 6px;
+      margin: 5px 0;
+    }
+
+    button {
+      margin: 2px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .card {
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .status {
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: white;
+      margin-left: 6px;
+    }
+
+    .present { background: #4CAF50; }
+    .late { background: #FFC107; color: black; }
+    .absent { background: #F44336; }
+
+    .stats {
+      margin: 10px 0;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+    }
+
+    .substats {
+      font-size: 13px;
+      color: #555;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body> -->
+
+<h1>Attendance Tracker</h1>
+
+<h2>Add Student</h2>
+<input id="studentName" placeholder="Student name">
+<button onclick="addStudent()">Add</button>
+
+<h2>Create Session</h2>
+<input id="sessionTitle" placeholder="Session title">
+<button onclick="createSession()">Create</button>
+
+<h2>Select Session</h2>
+<select id="sessionSelect" onchange="selectSession()">
+  <option value="">-- Select a session --</option>
+</select>
+<div id="currentSession"></div>
+
+<div class="stats" id="sessionStats"></div>
+
+<h2>Students</h2>
+<div id="students"></div>
+
+<script>
+const API = "https://attendance-tracker-dp4l.onrender.com";
+let currentSessionId = null;
+
+async function addStudent() {
+  const name = document.getElementById("studentName").value.trim();
+  if (!name) return;
+
+  await fetch(`${API}/users/?name=${name}`, { method: "POST" });
+  document.getElementById("studentName").value = "";
+
+  loadAll();
+}
+
+async function createSession() {
+  const title = document.getElementById("sessionTitle").value.trim();
+  if (!title) return;
+
+  const res = await fetch(`${API}/tasks/?title=${title}`, { method: "POST" });
+  const data = await res.json();
+
+  document.getElementById("sessionTitle").value = "";
+
+  await loadSessions();
+
+  currentSessionId = data.id;
+  document.getElementById("sessionSelect").value = data.id;
+  updateSessionLabel();
+
+  loadStudents();
+}
+
+async function loadSessions() {
+  const res = await fetch(`${API}/tasks/`);
+  const data = await res.json();
+
+  const select = document.getElementById("sessionSelect");
+  select.innerHTML = `<option value="">-- Select a session --</option>`;
+
+  data.forEach(session => {
+    const option = document.createElement("option");
+    option.value = session.id;
+    option.textContent = session.title;
+    select.appendChild(option);
+  });
+}
+
+function updateSessionLabel() {
+  const select = document.getElementById("sessionSelect");
+  const text = select.options[select.selectedIndex]?.text || "";
+  document.getElementById("currentSession").innerText =
+    currentSessionId ? `Current session: ${text}` : "";
+}
+
+function selectSession() {
+  currentSessionId = document.getElementById("sessionSelect").value;
+  updateSessionLabel();
+  if (!currentSessionId) return;
+  loadStudents();
+}
+
+async function loadStudents() {
+  if (!currentSessionId) return;
+
+  const res = await fetch(`${API}/tasks/attendance/${currentSessionId}`);
+  const sessionData = await res.json();
+
+  const usersRes = await fetch(`${API}/users/`);
+  const usersData = await usersRes.json();
+
+  const container = document.getElementById("students");
+  container.innerHTML = "";
+
+  let present = 0, late = 0, absent = 0;
+
+  sessionData.forEach(s => {
+    if (s.status === "present") present++;
+    else if (s.status === "late") late++;
+    else absent++;
+
+    const stats = usersData.find(u => u.id === s.id) || {};
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <strong>${s.name}</strong>
+      <span class="status ${s.status}">${s.status}</span>
+
+      <div class="substats">
+        Present: ${stats.present_count || 0}/${stats.total_sessions || 0}
+        | Late: ${stats.late_count || 0}
+      </div>
+
+      <button onclick="mark(${s.id}, 'present')">Present</button>
+      <button onclick="mark(${s.id}, 'late')">Late</button>
+      <button onclick="mark(${s.id}, 'absent')">Absent</button>
+      <button onclick="deleteStudent(${s.id})">Delete</button>
+    `;
+
+    container.appendChild(div);
+  });
+
+  document.getElementById("sessionStats").innerHTML = `
+    <strong>Session Stats:</strong><br>
+    🟢 ${present} | 🟡 ${late} | 🔴 ${absent}
+  `;
+}
+
+async function mark(userId, status) {
+  if (!currentSessionId) return;
+
+  await fetch(`${API}/tasks/attendance?user_id=${userId}&task_id=${currentSessionId}&status=${status}`, {
+    method: "POST"
+  });
+
+  loadStudents();
+}
+
+async function deleteStudent(id) {
+  await fetch(`${API}/users/${id}`, { method: "DELETE" });
+  loadAll();
+}
+
+async function loadAll() {
+  await loadSessions();
+  if (currentSessionId) {
+    document.getElementById("sessionSelect").value = currentSessionId;
+    loadStudents();
+  }
+}
+
+loadSessions();
+</script>
 
 </body>
 </html>
