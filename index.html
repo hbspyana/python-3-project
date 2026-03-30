@@ -7,15 +7,15 @@
   <h1>Attendance Tracker</h1>
 
   <input id="studentName" placeholder="Student name">
-  <button onclick="addStudent()">Add Student</button>
+  <button id="addStudentBtn">Add Student</button>
 
   <br><br>
 
   <input id="sessionTitle" placeholder="Session title">
-  <button onclick="createSession()">Create Session</button>
+  <button id="createSessionBtn">Create Session</button>
 
   <h2>Sessions</h2>
-  <select id="sessionSelect" onchange="loadStudents()">
+  <select id="sessionSelect">
     <option value="">Select a session</option>
   </select>
 
@@ -27,23 +27,16 @@
 
     async function addStudent() {
       const name = document.getElementById("studentName").value;
-      if (!name) return alert("Enter a name");
-
-      await fetch(`${API_BASE}/users/?name=${encodeURIComponent(name)}`, {
-        method: "POST"
-      });
-
+      if (!name) return;
+      await fetch(`${API_BASE}/users/?name=${encodeURIComponent(name)}`, { method: "POST" });
       document.getElementById("studentName").value = "";
       loadStudents();
     }
 
     async function createSession() {
       const title = document.getElementById("sessionTitle").value;
-      if (!title) return alert("Enter a session title");
-
-      const res = await fetch(`${API_BASE}/tasks/?title=${encodeURIComponent(title)}`, {
-        method: "POST"
-      });
+      if (!title) return;
+      await fetch(`${API_BASE}/tasks/?title=${encodeURIComponent(title)}`, { method: "POST" });
       document.getElementById("sessionTitle").value = "";
       loadSessions();
     }
@@ -59,6 +52,7 @@
         opt.textContent = s.title;
         select.appendChild(opt);
       });
+      if (sessions.length) select.value = sessions[sessions.length-1].id;
       loadStudents();
     }
 
@@ -71,15 +65,15 @@
 
       const res = await fetch(`${API_BASE}/tasks/attendance/${sessionId}`);
       const students = await res.json();
-
       const list = document.getElementById("students");
       list.innerHTML = "";
 
       students.forEach(s => {
         const li = document.createElement("li");
+        const status = s.status || 'absent';
         li.innerHTML = `
           <strong>${s.name}</strong>
-          (Present: ${s.present_count || 0}, Late: ${s.late_count || 0}, Status: ${s.status})
+          (Present: ${s.present_count || 0}, Late: ${s.late_count || 0}, Status: ${status})
           <br>
           <button onclick="markAttendance(${s.id}, ${sessionId}, 'present')">Present</button>
           <button onclick="markAttendance(${s.id}, ${sessionId}, 'late')">Late</button>
@@ -91,9 +85,7 @@
     }
 
     async function markAttendance(userId, taskId, status) {
-      await fetch(`${API_BASE}/tasks/attendance?user_id=${userId}&task_id=${taskId}&status=${status}`, {
-        method: "POST"
-      });
+      await fetch(`${API_BASE}/tasks/attendance?user_id=${userId}&task_id=${taskId}&status=${status}`, { method: "POST" });
       loadStudents();
     }
 
@@ -101,6 +93,10 @@
       await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE" });
       loadStudents();
     }
+
+    document.getElementById("addStudentBtn").addEventListener("click", addStudent);
+    document.getElementById("createSessionBtn").addEventListener("click", createSession);
+    document.getElementById("sessionSelect").addEventListener("change", loadStudents);
 
     loadSessions();
   </script>
