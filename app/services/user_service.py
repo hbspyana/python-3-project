@@ -1,9 +1,22 @@
-from app.models.models import User, Attendance
+from app.models.models import User, Attendance, Task
+
+# def create_user(db, name):
+#     user = User(name=name)
+#     db.add(user)
+#     db.commit()
+#     return user
 
 def create_user(db, name):
     user = User(name=name)
     db.add(user)
     db.commit()
+    db.refresh(user)
+
+    sessions = db.query(Task).all()
+    for task in sessions:
+        db.add(Attendance(user_id=user.id, task_id=task.id, status='absent'))
+    db.commit()
+
     return user
 
 def get_users(db):
