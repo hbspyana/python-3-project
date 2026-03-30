@@ -35,11 +35,16 @@ def get_attendance_for_task(db, task_id):
 
     for user in users:
         record = db.query(Attendance).filter_by(user_id=user.id, task_id=task_id).first()
+        all_records = db.query(Attendance).filter_by(user_id=user.id).all()
+        present_count = len([r for r in all_records if r.status == 'present'])
+        late_count = len([r for r in all_records if r.status == 'late'])
 
         result.append({
             'id': user.id,
             'name': user.name,
-            'status': record.status if record else 'absent'
+            'status': record.status if record else 'absent',
+            'present_count': present_count,
+            'late_count': late_count
         })
 
     return result
