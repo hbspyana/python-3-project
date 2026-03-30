@@ -1,158 +1,108 @@
-<h1>Attendance Tracker</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Attendance Tracker</title>
+</head>
+<body>
+  <h1>Attendance Tracker</h1>
 
-<h2>Add Student</h2>
-<input id="studentName" placeholder="Student name">
-<button onclick="addStudent()">Add</button>
+  <input id="studentName" placeholder="Student name">
+  <button onclick="addStudent()">Add Student</button>
 
-<h2>Create Session</h2>
-<input id="sessionTitle" placeholder="Session title">
-<button onclick="createSession()">Create</button>
+  <br><br>
 
-<h2>Select Session</h2>
-<select id="sessionSelect" onchange="selectSession()">
-  <option value="">-- Select a session --</option>
-</select>
-<div id="currentSession"></div>
+  <input id="sessionTitle" placeholder="Session title">
+  <button onclick="createSession()">Create Session</button>
 
-<div class="stats" id="sessionStats"></div>
+  <h2>Sessions</h2>
+  <select id="sessionSelect" onchange="loadStudents()">
+    <option value="">Select a session</option>
+  </select>
 
-<h2>Students</h2>
-<div id="students"></div>
+  <h2>Students</h2>
+  <ul id="students"></ul>
 
-<script>
-const API = "https://attendance-tracker-dp4l.onrender.com";
-let currentSessionId = null;
+  <script>
+    const API_BASE = "https://attendance-tracker-dp4l.onrender.com";
 
-async function addStudent() {
-  const name = document.getElementById("studentName").value.trim();
-  if (!name) return;
+    async function addStudent() {
+      const name = document.getElementById("studentName").value;
+      if (!name) return alert("Enter a name");
 
-  await fetch(`${API}/users/?name=${name}`, { method: "POST" });
-  document.getElementById("studentName").value = "";
+      await fetch(`${API_BASE}/users/?name=${encodeURIComponent(name)}`, {
+        method: "POST"
+      });
 
-  loadAll();
-}
+      document.getElementById("studentName").value = "";
+      loadStudents();
+    }
 
-async function createSession() {
-  const title = document.getElementById("sessionTitle").value.trim();
-  if (!title) return;
+    async function createSession() {
+      const title = document.getElementById("sessionTitle").value;
+      if (!title) return alert("Enter a session title");
 
-  const res = await fetch(`${API}/tasks/?title=${title}`, { method: "POST" });
-  const data = await res.json();
+      const res = await fetch(`${API_BASE}/tasks/?title=${encodeURIComponent(title)}`, {
+        method: "POST"
+      });
+      document.getElementById("sessionTitle").value = "";
+      loadSessions();
+    }
 
-  document.getElementById("sessionTitle").value = "";
+    async function loadSessions() {
+      const res = await fetch(`${API_BASE}/tasks/`);
+      const sessions = await res.json();
+      const select = document.getElementById("sessionSelect");
+      select.innerHTML = `<option value="">Select a session</option>`;
+      sessions.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.title;
+        select.appendChild(opt);
+      });
+      loadStudents();
+    }
 
-  await loadSessions();
+    async function loadStudents() {
+      const sessionId = document.getElementById("sessionSelect").value;
+      if (!sessionId) {
+        document.getElementById("students").innerHTML = "<li>Select a session first</li>";
+        return;
+      }
 
-  currentSessionId = data.id;
-  document.getElementById("sessionSelect").value = data.id;
-  updateSessionLabel();
+      const res = await fetch(`${API_BASE}/tasks/attendance/${sessionId}`);
+      const students = await res.json();
 
-  loadStudents();
-}
+      const list = document.getElementById("students");
+      list.innerHTML = "";
 
-async function loadSessions() {
-  const res = await fetch(`${API}/tasks/`);
-  const data = await res.json();
+      students.forEach(s => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${s.name}</strong>
+          (Present: ${s.present_count || 0}, Late: ${s.late_count || 0}, Status: ${s.status})
+          <br>
+          <button onclick="markAttendance(${s.id}, ${sessionId}, 'present')">Present</button>
+          <button onclick="markAttendance(${s.id}, ${sessionId}, 'late')">Late</button>
+          <button onclick="markAttendance(${s.id}, ${sessionId}, 'absent')">Absent</button>
+          <button onclick="deleteStudent(${s.id})">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
 
-  const select = document.getElementById("sessionSelect");
-  select.innerHTML = `<option value="">-- Select a session --</option>`;
+    async function markAttendance(userId, taskId, status) {
+      await fetch(`${API_BASE}/tasks/attendance?user_id=${userId}&task_id=${taskId}&status=${status}`, {
+        method: "POST"
+      });
+      loadStudents();
+    }
 
-  data.forEach(session => {
-    const option = document.createElement("option");
-    option.value = session.id;
-    option.textContent = session.title;
-    select.appendChild(option);
-  });
-}
+    async function deleteStudent(userId) {
+      await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE" });
+      loadStudents();
+    }
 
-function updateSessionLabel() {
-  const select = document.getElementById("sessionSelect");
-  const text = select.options[select.selectedIndex]?.text || "";
-  document.getElementById("currentSession").innerText =
-    currentSessionId ? `Current session: ${text}` : "";
-}
-
-function selectSession() {
-  currentSessionId = document.getElementById("sessionSelect").value;
-  updateSessionLabel();
-  if (!currentSessionId) return;
-  loadStudents();
-}
-
-async function loadStudents() {
-  if (!currentSessionId) return;
-
-  const res = await fetch(`${API}/tasks/attendance/${currentSessionId}`);
-  const sessionData = await res.json();
-
-  const usersRes = await fetch(`${API}/users/`);
-  const usersData = await usersRes.json();
-
-  const container = document.getElementById("students");
-  container.innerHTML = "";
-
-  let present = 0, late = 0, absent = 0;
-
-  sessionData.forEach(s => {
-    if (s.status === "present") present++;
-    else if (s.status === "late") late++;
-    else absent++;
-
-    const stats = usersData.find(u => u.id === s.id) || {};
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML = `
-      <strong>${s.name}</strong>
-      <span class="status ${s.status}">${s.status}</span>
-
-      <div class="substats">
-        Present: ${stats.present_count || 0}/${stats.total_sessions || 0}
-        | Late: ${stats.late_count || 0}
-      </div>
-
-      <button onclick="mark(${s.id}, 'present')">Present</button>
-      <button onclick="mark(${s.id}, 'late')">Late</button>
-      <button onclick="mark(${s.id}, 'absent')">Absent</button>
-      <button onclick="deleteStudent(${s.id})">Delete</button>
-    `;
-
-    container.appendChild(div);
-  });
-
-  document.getElementById("sessionStats").innerHTML = `
-    <strong>Session Stats:</strong><br>
-    🟢 ${present} | 🟡 ${late} | 🔴 ${absent}
-  `;
-}
-
-async function mark(userId, status) {
-  if (!currentSessionId) return;
-
-  await fetch(`${API}/tasks/attendance?user_id=${userId}&task_id=${currentSessionId}&status=${status}`, {
-    method: "POST"
-  });
-
-  loadStudents();
-}
-
-async function deleteStudent(id) {
-  await fetch(`${API}/users/${id}`, { method: "DELETE" });
-  loadAll();
-}
-
-async function loadAll() {
-  await loadSessions();
-  if (currentSessionId) {
-    document.getElementById("sessionSelect").value = currentSessionId;
-    loadStudents();
-  }
-}
-
-loadSessions();
-</script>
-
+    loadSessions();
+  </script>
 </body>
 </html>
