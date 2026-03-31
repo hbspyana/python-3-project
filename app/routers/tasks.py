@@ -17,6 +17,13 @@ def create_task(title: str):
     finally:
         db.close()
 
+def delete_task(task_id: int):
+    db = SessionLocal()
+    try:
+        return task_service.delete_task(db, task_id)
+    finally:
+        db.close()
+
 @router.post('/attendance')
 def mark_attendance(user_id, task_id, status):
     db = SessionLocal()
