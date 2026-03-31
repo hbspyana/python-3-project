@@ -1,11 +1,5 @@
 from app.models.models import User, Attendance, Task
 
-# def create_user(db, name):
-#     user = User(name=name)
-#     db.add(user)
-#     db.commit()
-#     return user
-
 def create_user(db, name):
     user = User(name=name)
     db.add(user)

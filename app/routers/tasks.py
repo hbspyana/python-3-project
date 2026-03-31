@@ -14,6 +14,11 @@ def create_task(title: str):
     db = SessionLocal()
     return task_service.create_task(db, title)
 
+@router.delete('/{task_id}')
+def delete_task(task_id: int):
+    db = SessionLocal()
+    return task_service.delete_task(db, task_id)
+
 @router.post('/attendance')
 def mark_attendance(user_id, task_id, status):
     db = SessionLocal()
@@ -25,8 +30,7 @@ def mark_attendance(user_id, task_id, status):
 @router.get('/')
 def get_tasks():
     db = SessionLocal()
-    tasks = db.query(Task).all()
-    return [{"id": t.id, "title": t.title} for t in tasks]
+    return task_service.get_tasks(db)
 
 @router.get('/attendance/{task_id}')
 def get_attendance(task_id: int):

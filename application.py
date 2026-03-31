@@ -28,6 +28,11 @@ selected_session_title = st.selectbox("Select Session", [""] + list(session_map.
 selected_session_id = session_map.get(selected_session_title)
 
 if selected_session_id:
+    if st.button('Delete Session'):
+        requests.delete(f'{API_BASE}/tasks/{selected_session_id}')
+        st.success('Session deleted')
+        st.rerun()
+
     st.subheader("Students")
     students = requests.get(f"{API_BASE}/tasks/attendance/{selected_session_id}").json()
     
