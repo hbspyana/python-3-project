@@ -41,3 +41,12 @@ if selected_session_id:
             requests.post(f"{API_BASE}/tasks/attendance?user_id={s['id']}&task_id={selected_session_id}&status=absent")
         if col5.button(f"Delete {s['id']}"):
             requests.delete(f"{API_BASE}/users/{s['id']}")
+
+status = s['status']
+
+if status == 'present':
+    st.markdown(f':green[{status}]')
+if status == 'late':
+    st.markdown(f':yellow[{status}]')
+if status == 'absent':
+    st.markdown(f':red[{status}]')
