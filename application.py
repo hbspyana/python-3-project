@@ -22,7 +22,11 @@ if st.button("Create Session"):
         st.success(f"Created session: {new_session}")
         new_session = ""
 
-sessions = requests.get(f"{API_BASE}/tasks/").json()
+# sessions = requests.get(f"{API_BASE}/tasks/").json()
+res = requests.get(f'{API_BASE}/tasks/')
+st.write('STATUS:', res.status_code)
+st.write('TEXT:', res.text)
+sessions = res.json()
 session_map = {s["title"]: s["id"] for s in sessions}
 selected_session_title = st.selectbox("Select Session", [""] + list(session_map.keys()))
 selected_session_id = session_map.get(selected_session_title)
