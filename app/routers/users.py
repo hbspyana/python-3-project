@@ -11,14 +11,23 @@ SessionLocal = sessionmaker(bind=engine)
 @router.post('/')
 def create_user(name: str):
     db = SessionLocal()
-    return user_service.create_user(db, name)
+    try:
+        return user_service.create_user(db, name)
+    finally:
+        db.close()
 
 @router.get('/')
 def get_users():
     db = SessionLocal()
-    return user_service.get_users_stats(db)
+    try:
+        return user_service.get_users_stats(db)
+    finally:
+        db.close()
 
 @router.delete('/{user_id}')
 def delete_user(user_id: int):
     db = SessionLocal()
-    return user_service.delete_user(db, user_id)
+    try:
+        return user_service.delete_user(db, user_id)
+    finally:
+        db.close()
