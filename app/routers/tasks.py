@@ -17,6 +17,7 @@ def create_task(title: str):
     finally:
         db.close()
 
+@router.delete('/{task_id}')
 def delete_task(task_id: int):
     db = SessionLocal()
     try:
