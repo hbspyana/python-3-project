@@ -32,22 +32,21 @@ if selected_session_id:
     students = requests.get(f"{API_BASE}/tasks/attendance/{selected_session_id}").json()
     
     for s in students:
-        status = s['status']
-
-        if status == 'present':
-            st.markdown(f':green[{status}]')
-        if status == 'late':
-            st.markdown(f':yellow[{status}]')
-        if status == 'absent':
-            st.markdown(f':red[{status}]')
-        
         col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 1])
-        col1.write(f"{s['name']} (Present: {s['present_count']}, Late: {s['late_count']}, Status: {s['status']})")
-        if col2.button(f"Present {s['id']}"):
+
+        status = s['status']
+        color = 'green' if status == 'present' else 'yellow' if status == 'late' else 'red'
+
+        col1.markdown(f"{s['id']} {s['name']} - :{color}[{status}] (Present: {s['present_count']}, Late: {s['late_count']})")
+
+        if col2.button("Present", key=f"present_{s['id']}"):
             requests.post(f"{API_BASE}/tasks/attendance?user_id={s['id']}&task_id={selected_session_id}&status=present")
-        if col3.button(f"Late {s['id']}"):
+
+        if col3.button("Late", key=f"late_{s['id']}"):
             requests.post(f"{API_BASE}/tasks/attendance?user_id={s['id']}&task_id={selected_session_id}&status=late")
-        if col4.button(f"Absent {s['id']}"):
+
+        if col4.button("Absent", key=f"absent_{s['id']}"):
             requests.post(f"{API_BASE}/tasks/attendance?user_id={s['id']}&task_id={selected_session_id}&status=absent")
-        if col5.button(f"Delete {s['id']}"):
+
+        if col5.button("🗑️", key=f"delete_{s['id']}"):
             requests.delete(f"{API_BASE}/users/{s['id']}")

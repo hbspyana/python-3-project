@@ -43,6 +43,7 @@ def mark_attendance(db, user_id, task_id, status):
 # def get_tasks(db):
 #     return db.query(Task).all()
 def get_tasks(db):
+    tasks = db.query(Task).all()
     return [{"id": t.id, "title": t.title} for t in db.query(Task).all()]
 
 def get_attendance_for_task(db, task_id):
