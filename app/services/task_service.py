@@ -14,20 +14,36 @@ def create_task(db, title):
     db.commit()
     return task
 
+# def mark_attendance(db, user_id, task_id, status):
+#     record = db.query(Attendance).filter_by(user_id=user_id, task_id=task_id).first()
+    
+#     if record:
+#         record.status = status
+#     else:
+#         record = Attendance(user_id=user_id, task_id=task_id, status=status)
+#         db.add(record)
+    
+#     db.commit()
+#     return record
 def mark_attendance(db, user_id, task_id, status):
     record = db.query(Attendance).filter_by(user_id=user_id, task_id=task_id).first()
-    
     if record:
         record.status = status
     else:
         record = Attendance(user_id=user_id, task_id=task_id, status=status)
         db.add(record)
-    
     db.commit()
-    return record
+    return {
+        'user_id': record.user_id,
+        'task_id': record.task_id,
+        'status': record.status,
+        'message': 'Attendance updated'
+    }
 
+# def get_tasks(db):
+#     return db.query(Task).all()
 def get_tasks(db):
-    return db.query(Task).all()
+    return [{"id": t.id, "title": t.title} for t in db.query(Task).all()]
 
 def get_attendance_for_task(db, task_id):
     users = db.query(User).all()
