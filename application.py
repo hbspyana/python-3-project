@@ -33,7 +33,7 @@ if selected_session_id:
     
     status = s['status']
     if status == 'present':
-    st.markdown(f':green[{status}]')
+        st.markdown(f':green[{status}]')
     if status == 'late':
         st.markdown(f':yellow[{status}]')
     if status == 'absent':
