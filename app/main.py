@@ -16,8 +16,7 @@ app.mount('/static', StaticFiles(directory='.'), name='static')
 
 @app.get('/')
 def root():
-    file_path = os.path.join(os.getcwd(), 'index.html')
-    return FileResponse(file_path)
+    return {'message': 'running'}
 
 @app.get('/dashboard')
 def dashboard():
