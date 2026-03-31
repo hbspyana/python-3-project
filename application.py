@@ -31,15 +31,16 @@ if selected_session_id:
     st.subheader("Students")
     students = requests.get(f"{API_BASE}/tasks/attendance/{selected_session_id}").json()
     
-    status = s['status']
-    if status == 'present':
-        st.markdown(f':green[{status}]')
-    if status == 'late':
-        st.markdown(f':yellow[{status}]')
-    if status == 'absent':
-        st.markdown(f':red[{status}]')
-    
     for s in students:
+        status = s['status']
+
+        if status == 'present':
+            st.markdown(f':green[{status}]')
+        if status == 'late':
+            st.markdown(f':yellow[{status}]')
+        if status == 'absent':
+            st.markdown(f':red[{status}]')
+        
         col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 1])
         col1.write(f"{s['name']} (Present: {s['present_count']}, Late: {s['late_count']}, Status: {s['status']})")
         if col2.button(f"Present {s['id']}"):
