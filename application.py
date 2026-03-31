@@ -30,6 +30,15 @@ selected_session_id = session_map.get(selected_session_title)
 if selected_session_id:
     st.subheader("Students")
     students = requests.get(f"{API_BASE}/tasks/attendance/{selected_session_id}").json()
+    
+    status = s['status']
+    if status == 'present':
+    st.markdown(f':green[{status}]')
+    if status == 'late':
+        st.markdown(f':yellow[{status}]')
+    if status == 'absent':
+        st.markdown(f':red[{status}]')
+    
     for s in students:
         col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 1])
         col1.write(f"{s['name']} (Present: {s['present_count']}, Late: {s['late_count']}, Status: {s['status']})")
@@ -41,12 +50,3 @@ if selected_session_id:
             requests.post(f"{API_BASE}/tasks/attendance?user_id={s['id']}&task_id={selected_session_id}&status=absent")
         if col5.button(f"Delete {s['id']}"):
             requests.delete(f"{API_BASE}/users/{s['id']}")
-
-status = s['status']
-
-if status == 'present':
-    st.markdown(f':green[{status}]')
-if status == 'late':
-    st.markdown(f':yellow[{status}]')
-if status == 'absent':
-    st.markdown(f':red[{status}]')
